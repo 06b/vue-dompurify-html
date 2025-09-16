@@ -5,15 +5,14 @@ import type {
 } from 'vue-demi';
 import dompurify from 'dompurify';
 import type {
-    DOMPurifyI,
-    HookEvent,
+    DOMPurify,
     HookName,
-    SanitizeAttributeHookEvent,
-    SanitizeElementHookEvent,
+    UponSanitizeAttributeHookEvent,
+    UponSanitizeElementHookEvent,
 } from 'dompurify';
 import { isVue3 } from 'vue-demi';
 
-type MinimalDOMPurifyInstance = Pick<DOMPurifyI, 'sanitize' | 'addHook'>;
+type MinimalDOMPurifyInstance = Pick<DOMPurify, 'sanitize' | 'addHook'>;
 export type DOMPurifyInstanceBuilder = () => MinimalDOMPurifyInstance;
 
 export interface MinimalDOMPurifyConfig {
@@ -59,23 +58,42 @@ export interface DirectiveConfig {
         uponSanitizeElement?:
             | ((
                   currentNode: Element,
-                  data: SanitizeElementHookEvent,
+                  data: UponSanitizeElementHookEvent,
                   config: MinimalDOMPurifyConfig
               ) => void)
             | undefined;
         uponSanitizeAttribute?:
             | ((
                   currentNode: Element,
-                  data: SanitizeAttributeHookEvent,
+                  data: UponSanitizeAttributeHookEvent,
                   config: MinimalDOMPurifyConfig
               ) => void)
             | undefined;
     } & {
-        [H in HookName]?:
+        [H in
+            | 'beforeSanitizeElements'
+            | 'afterSanitizeElements'
+            | 'uponSanitizeShadowNode']?:
+            | ((
+                  currentNode: Node,
+                  hookEvent: null,
+                  config: MinimalDOMPurifyConfig,
+              ) => void)
+            | undefined;
+    } & {
+        [H in 'beforeSanitizeAttributes' | 'afterSanitizeAttributes']?:
             | ((
                   currentNode: Element,
-                  data: HookEvent,
-                  config: MinimalDOMPurifyConfig
+                  hookEvent: null,
+                  config: MinimalDOMPurifyConfig,
+              ) => void)
+            | undefined;
+    } & {
+        [H in 'beforeSanitizeShadowDOM' | 'afterSanitizeShadowDOM']?:
+            | ((
+                  currentNode: DocumentFragment,
+                  hookEvent: null,
+                  config: MinimalDOMPurifyConfig,
               ) => void)
             | undefined;
     };
@@ -91,6 +109,7 @@ function setUpHooks(
     for (hookName in hooks) {
         const hook = hooks[hookName];
         if (hook !== undefined) {
+            // @ts-expect-error Overload cannot be properly identified, in any cases they will be adjusted https://github.com/cure53/DOMPurify/pull/1031
             dompurifyInstance.addHook(hookName, hook);
         }
     }
