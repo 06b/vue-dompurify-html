@@ -1,19 +1,14 @@
-import type {
-    DirectiveHook,
-    ObjectDirective,
-    DirectiveBinding,
-} from 'vue-demi';
+import { type DirectiveHook, type ObjectDirective, type DirectiveBinding } from 'vue-demi';
 import dompurify from 'dompurify';
 import type {
-    DOMPurifyI,
-    HookEvent,
-    HookName,
-    SanitizeAttributeHookEvent,
-    SanitizeElementHookEvent,
+    DOMPurify,
+    UponSanitizeElementHookEvent,
+    UponSanitizeAttributeHookEvent,
+    HookName
 } from 'dompurify';
 import { isVue3 } from 'vue-demi';
 
-type MinimalDOMPurifyInstance = Pick<DOMPurifyI, 'sanitize' | 'addHook'>;
+type MinimalDOMPurifyInstance = Pick<DOMPurify, 'sanitize' | 'addHook'>;
 export type DOMPurifyInstanceBuilder = () => MinimalDOMPurifyInstance;
 
 export interface MinimalDOMPurifyConfig {
@@ -50,6 +45,7 @@ export interface MinimalDOMPurifyConfig {
             | undefined;
         allowCustomizedBuiltInElements?: boolean | undefined;
     };
+    SANITIZE_NAMED_PROPS?: boolean | undefined;
 }
 
 export interface DirectiveConfig {
@@ -58,24 +54,43 @@ export interface DirectiveConfig {
     hooks?: {
         uponSanitizeElement?:
             | ((
-                  currentNode: Element,
-                  data: SanitizeElementHookEvent,
-                  config: MinimalDOMPurifyConfig
+                  currentNode: Node,
+                  hookEvent: UponSanitizeElementHookEvent,
+                  config: MinimalDOMPurifyConfig,
               ) => void)
             | undefined;
         uponSanitizeAttribute?:
             | ((
                   currentNode: Element,
-                  data: SanitizeAttributeHookEvent,
-                  config: MinimalDOMPurifyConfig
+                  hookEvent: UponSanitizeAttributeHookEvent,
+                  config: MinimalDOMPurifyConfig,
               ) => void)
             | undefined;
     } & {
-        [H in HookName]?:
+        [H in
+            | 'beforeSanitizeElements'
+            | 'afterSanitizeElements'
+            | 'uponSanitizeShadowNode']?:
+            | ((
+                  currentNode: Node,
+                  hookEvent: null,
+                  config: MinimalDOMPurifyConfig,
+              ) => void)
+            | undefined;
+    } & {
+        [H in HookName | 'beforeSanitizeAttributes' | 'afterSanitizeAttributes']?:
             | ((
                   currentNode: Element,
-                  data: HookEvent,
-                  config: MinimalDOMPurifyConfig
+                  hookEvent: null,
+                  config: MinimalDOMPurifyConfig,
+              ) => void)
+            | undefined;
+    } & {
+        [H in 'beforeSanitizeShadowDOM' | 'afterSanitizeShadowDOM']?:
+            | ((
+                  currentNode: DocumentFragment,
+                  hookEvent: null,
+                  config: MinimalDOMPurifyConfig,
               ) => void)
             | undefined;
     };
@@ -83,7 +98,7 @@ export interface DirectiveConfig {
 
 function setUpHooks(
     config: DirectiveConfig,
-    dompurifyInstance: MinimalDOMPurifyInstance
+    dompurifyInstance: MinimalDOMPurifyInstance,
 ): void {
     const hooks = config.hooks ?? {};
 
@@ -91,6 +106,7 @@ function setUpHooks(
     for (hookName in hooks) {
         const hook = hooks[hookName];
         if (hook !== undefined) {
+            // @ts-expect-error Overload cannot be properly identified, in any cases they will be adjusted https://github.com/cure53/DOMPurify/pull/1031
             dompurifyInstance.addHook(hookName, hook);
         }
     }
@@ -102,7 +118,7 @@ export function defaultDOMPurifyInstanceBuilder(): MinimalDOMPurifyInstance {
 
 export function buildDirective(
     config: DirectiveConfig = {},
-    buildDOMPurifyInstance: DOMPurifyInstanceBuilder = defaultDOMPurifyInstanceBuilder
+    buildDOMPurifyInstance: DOMPurifyInstanceBuilder = defaultDOMPurifyInstanceBuilder,
 ): ObjectDirective<HTMLElement> {
     const dompurifyInstance = buildDOMPurifyInstance();
 
@@ -110,7 +126,7 @@ export function buildDirective(
 
     const updateComponent: DirectiveHook = function (
         el: HTMLElement,
-        binding: DirectiveBinding<HTMLElement>
+        binding: DirectiveBinding<HTMLElement>,
     ): void {
         const current_value = binding.value;
         if (binding.oldValue === current_value) {
@@ -124,15 +140,21 @@ export function buildDirective(
         if (namedConfigurations && arg !== undefined) {
             el.innerHTML = dompurifyInstance.sanitize(
                 current_value_string,
-                namedConfigurations[arg] ?? defaultConfig
+                namedConfigurations[arg] ?? defaultConfig,
             );
             return;
         }
         el.innerHTML = dompurifyInstance.sanitize(
             current_value_string,
-            defaultConfig
+            defaultConfig,
         );
     };
+
+//     return {
+//         mounted: updateComponent,
+//         updated: updateComponent,
+//     };
+// }
 
     // Stryker disable next-line ConditionalExpression
     if (isVue3) {

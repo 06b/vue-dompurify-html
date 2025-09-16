@@ -1,14 +1,13 @@
 import { mount } from '@vue/test-utils';
 import type { DOMPurifyInstanceBuilder } from '../src/dompurify-html';
 import { buildDirective } from '../src/dompurify-html';
-import type * as DOMPurify from 'dompurify';
-import type { DOMPurifyI } from 'dompurify';
+import type { DOMPurify } from 'dompurify';
 
 const realDOMPurify = jest.requireActual('dompurify');
 const sanitizeSpy = jest.fn(realDOMPurify.sanitize);
 const addHookSpy = jest.fn(realDOMPurify.addHook);
 jest.mock('dompurify', () => {
-    return (): DOMPurify.DOMPurifyI => {
+    return (): DOMPurify => {
         return { ...realDOMPurify, sanitize: sanitizeSpy, addHook: addHookSpy };
     };
 });
@@ -163,7 +162,7 @@ describe('VueDOMPurifyHTML Test Suite', (): void => {
                 sanitize(): string {
                     return 'Test';
                 },
-            } as unknown as DOMPurifyI;
+            } as unknown as DOMPurify;
         };
 
         const wrapper = mount(component, {
