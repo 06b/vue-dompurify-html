@@ -1,27 +1,61 @@
 {
-  "private": true,
-  "packageManager": "pnpm@8.5.1",
+  "name": "vue-dompurify-html",
+  "version": "4.1.5",
+  "description": "Safe replacement for the v-html directive",
+  "license": "MIT",
+  "author": "Thomas Gerbet",
+  "main": "./dist/vue-dompurify-html.umd.js",
+  "module": "./dist/vue-dompurify-html.mjs",
+  "types": "types/index.d.ts",
+  "files": [
+    "/dist",
+    "/types"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/vue-dompurify-html.mjs",
+      "require": "./dist/vue-dompurify-html.umd.js",
+      "types": "./types/index.d.ts"
+    }
+  },
+  "bugs": {
+    "url": "https://github.com/06b/vue-dompurify-html/issues"
+  },
+  "homepage": "https://github.com/06b/vue-dompurify-html/tree/main/packages/vue-dompurify-html#readme",
+  "keywords": [
+    "vue",
+    "vue-directive",
+    "xss",
+    "dom-xss",
+    "dompurify",
+    "security",
+    "html"
+  ],
   "scripts": {
-    "typecheck": "turbo run typecheck",
-    "build": "turbo run build",
-    "test": "turbo run test",
-    "test-mutation": "turbo run test-mutation",
-    "lint": "eslint --ignore-pattern 'node_modules/' --ignore-pattern 'dist/' --ignore-pattern 'types/' '**/*.ts'",
-    "lint-fix": "eslint --ignore-pattern 'node_modules/' --ignore-pattern 'dist/' --ignore-pattern 'types/' '**/*.ts' --fix"
+    "build": "tsc && vite build",
+    "test": "jest",
+    "test-mutation": "stryker run"
+  },
+  "dependencies": {
+    "dompurify": "^3.0.0",
+    "vue-demi": "^0.14.0"
+  },
+  "peerDependencies": {
+    "vue": "^2.7.0 || ^3.0.0"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "5.59.7",
-    "@typescript-eslint/parser": "5.59.7",
-    "eslint": "8.41.0",
-    "eslint-config-prettier": "8.8.0",
-    "eslint-plugin-prettier": "4.2.1",
-    "prettier": "2.8.8",
-    "turbo": "1.9.8",
-    "typescript": "5.0.4"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/06b/vue-dompurify-html.git",
-    "directory": "packages/vue-dompurify-html"
+    "@jest/types": "29.5.0",
+    "@stryker-mutator/core": "6.4.2",
+    "@stryker-mutator/jest-runner": "6.4.2",
+    "@stryker-mutator/typescript-checker": "6.4.2",
+    "@types/dompurify": "3.0.2",
+    "@types/jest": "29.5.1",
+    "@vue/test-utils": "2.3.2",
+    "jest": "29.5.0",
+    "jest-environment-jsdom": "29.5.0",
+    "ts-jest": "29.1.0",
+    "typescript": "5.0.4",
+    "vite": "5.4.20",
+    "vue": "3.2.47"
   }
 }
