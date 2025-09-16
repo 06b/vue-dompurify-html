@@ -20,13 +20,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/LeSuisse/vue-dompurify-html.git",
+    "url": "https://github.com/06b/vue-dompurify-html.git",
     "directory": "packages/vue-dompurify-html"
   },
   "bugs": {
-    "url": "https://github.com/LeSuisse/vue-dompurify-html/issues"
+    "url": "https://github.com/06b/vue-dompurify-html/issues"
   },
-  "homepage": "https://github.com/LeSuisse/vue-dompurify-html/tree/main/packages/vue-dompurify-html#readme",
+  "homepage": "https://github.com/06b/vue-dompurify-html/tree/main/packages/vue-dompurify-html#readme",
   "keywords": [
     "vue",
     "vue-directive",
